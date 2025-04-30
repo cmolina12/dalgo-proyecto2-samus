@@ -27,7 +27,6 @@ public class ProblemaP2 {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         List<TestCase> casos = readTestCases(br);
 
-        // Aquí invocarías tu método solve() para cada caso:
         for (TestCase tc : casos) {
             String resultado = solve(tc.n, tc.e, tc.blocked, tc.jumpPower);
             System.out.println(resultado);
@@ -130,22 +129,16 @@ public class ProblemaP2 {
 
                 // 3.1. Teletransporte (usa energía por distancia)
                 // obtenemos el subrango de destinos factibles
-                SortedSet<Integer> rango = libres.subSet(
-                    cur.pos - cur.energy, true,
-                    cur.pos + cur.energy, true
-                );
-                // lo recorremos en lista para evitar ConcurrentModification
-                List<Integer> destinos = new ArrayList<>(rango);
-                for (int np : destinos) {
+                // BFS – Teletransporte brute-force sin poda prematura
+                for (int np = Math.max(0, cur.pos - cur.energy);
+                        np <= Math.min(n, cur.pos + cur.energy);
+                        np++) {
+                    if (blocked[np]) continue;
                     int e2 = cur.energy - Math.abs(np - cur.pos);
                     if (e2 > bestEnergy[np]) {
                         bestEnergy[np] = e2;
-                        int delta = np - cur.pos;
-                        String act  = "T" + delta;
-                        states.add(new State(np, e2, curIdx, act));
+                        states.add(new State(np, e2, curIdx, "T" + (np - cur.pos)));
                         q.add(states.size() - 1);
-                        // lo vamos quitando para no volver a considerarlo
-                        libres.remove(np);
                     }
                 }
 
@@ -164,7 +157,7 @@ public class ProblemaP2 {
                         }
                     }
                 }
-                
+
                 // 3.3. Caminar (+1 / -1)
                 for (int d : new int[]{+1, -1}) {
                     int np = cur.pos + d;
